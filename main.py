@@ -3,7 +3,7 @@ import cv2
 import csv
 import shutil
 import argparse
-from yolo import YOLO
+from yolo3.yolo import YOLO
 from PIL import Image
 
 # csv header and rows
