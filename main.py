@@ -75,7 +75,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     
     parser.add_argument(
-        '--model', type=str, 
+        '--model', type=str, required=True,
         help='path to model weight file, default ' + YOLO.get_defaults("model_path")
     )
     
