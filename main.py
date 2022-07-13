@@ -100,7 +100,6 @@ if __name__ == '__main__':
     )
     
     FLAGS = parser.parse_args()
-    print(FLAGS.model)
     if "input" in FLAGS:
         data_directory = FLAGS.input
     if "threshold" in FLAGS:
