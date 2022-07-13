@@ -6,16 +6,13 @@ import argparse
 from yolo3.yolo import YOLO
 from PIL import Image
 
-# csv header and rows
-header = ['filename', 'rodent']
-rows = []
-
 frame_directory = 'frames'
 data_directory = 'data/'
 threshold = 0.8
 
 def extract_frame(filename):
     print("extracting frames from", filename, "...")
+    
     # get video
     vidcap = cv2.VideoCapture(filename)
     if os.path.exists(frame_directory):
@@ -26,16 +23,20 @@ def extract_frame(filename):
     success, image = vidcap.read()
     count = 0
     while success:
-        vidcap.set(cv2.CAP_PROP_POS_MSEC, (count*200))          # extract 5 frames per second
+        vidcap.set(cv2.CAP_PROP_POS_MSEC, (count*200))                              # extract 5 frames per second
         cv2.imwrite(os.path.join(frame_directory, "frame%d.jpg" % count), image)
         success, image = vidcap.read()
         count += 1
     print(count, "frames extracted from", filename)
     
 def main(yolo):
+    rows = []
+    # loop through all files in data
     for filename in sorted(os.listdir(data_directory)):
         result = False
         extract_frame(os.path.join(data_directory, filename))
+        
+        # loop through all frames extracted 
         for frame_filename in sorted(os.listdir(frame_directory)):
             try:
                 image = Image.open(os.path.join(frame_directory, frame_filename))
@@ -45,12 +46,14 @@ def main(yolo):
             else:
                 detection, scores, classes = yolo.detect_image(image)
                 count = 0
+                
+                # count number of detections above specified threshold
                 for i, c in reversed(list(enumerate(classes))):
                     score = scores[i]
                     if score > threshold:
                         count += 1
                     
-                if count > 0:
+                if count > 0:           # object above threshold is detected
                     detection.show()
                     result = True 
                     break               
@@ -67,7 +70,6 @@ def main(yolo):
     # write to csv
     f = open('results.csv', 'w')
     writer = csv.writer(f)
-    writer.writerow(header)
     writer.writerows(rows)
     f.close()
 
