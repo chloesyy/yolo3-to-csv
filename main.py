@@ -28,7 +28,8 @@ def extract_frame(filename):
         success, image = vidcap.read()
         count += 1
     print(count, "frames extracted from", filename)
-    
+
+# change inputs to api call (maybe dont need inputs anymore?)
 def main(yolo):
     rows = []
     # loop through all files in data
@@ -44,6 +45,10 @@ def main(yolo):
                 print('Open error! Please try again.')
                 continue
             else:
+                """
+                TODO: make api call to retrieve result
+                """
+                
                 detection, scores, classes = yolo.detect_image(image)
                 count = 0
                 
