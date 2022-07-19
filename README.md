@@ -1,7 +1,7 @@
 # yolo3-to-csv
 ## Description
 - Takes in videos/images from `/data` directory and extracts 5 frames per second for each video.
-- Runs frames through local yolo model.
+- Runs frames through local custom yolo model.
 - Returns true (yes) if object is detected in **any one frame**, otherwise returns false (no).
 - Generates csv file (`results.csv`) in the following format:
 
@@ -32,5 +32,5 @@ To change threshold for detection:  `--threshold 0.9`
 Results are saved into `results.csv`
 
 ## Future Steps
-1. To remove local model file requirement, replaced with api calls to models
+1. To remove local model file requirement, replaced with API calls to models
 2. To generalise to models other than yolov3 (e.g. FasterRCNN)
