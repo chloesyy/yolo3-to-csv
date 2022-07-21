@@ -2,3 +2,5 @@
 *.h5.classes
 
 __pycache__
+config.json
+sample-test*.jpeg
