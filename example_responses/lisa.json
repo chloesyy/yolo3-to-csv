@@ -1,0 +1,73 @@
+{
+    "completed_timestamp": "2022-07-20T14:47:18.599484+08:00",
+    "results": {
+        "face_presence_check": {
+            "status": 0,
+            "remarks": "No face detected."
+        },
+        "file_type_check": {
+            "status": 1,
+            "remarks": "Valid image file type."
+        },
+        "image_size_check": {
+            "status": 0,
+            "remarks": "Image size is not W=400px, H=514px."
+        },
+        "gaze_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "face_front_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "shoulder_alignment_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "mouth_open_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "blur_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "eye_close_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "background_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "lighting_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "skin_specular_reflection_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "hair_cover_eye_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "frame_cover_eye_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "watermark_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "headcover_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        },
+        "border_check": {
+            "status": -2,
+            "remarks": "Unable to perform check."
+        }
+    }
+}
