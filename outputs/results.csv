@@ -1,3 +1,4 @@
-Filename
-mobius.png
-wheelchair-img.jpeg
+Filename,background_check,blur_check,eye_close_check,face_front_check,face_presence_check,file_type_check,gaze_check,skin_specular_reflection_check,width,height,PASSED
+mobius.png,-2,-2,-2,-2,0,1,-2,-2,1024,372,0
+sample-test1.jpeg,0,1,1,1,1,1,1,1,1024,1024,1
+sample-test2.jpeg,1,0,1,1,1,1,1,1,225,225,0

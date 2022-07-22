@@ -1,3 +1,4 @@
+from concurrent.futures import process
 import os
 from pickle import FRAME
 import cv2
@@ -21,27 +22,24 @@ API_URL = None
 API_KEY = None
 
 # LISA check constants
-# LISA_CHECK_TYPES = [
-#         'background_check',
-#         'blur_check',
-#         'eye_close_check',
-#         'face_front_check',
-#         'face_presence_check',
-#         'file_type_check',
-# #        'frame_cover_eye_check',
-#         'gaze_check',
-# #        'hair_cover_eye_check',
-# #        'headcover_check',
-# #        'image_size_check',
-# #        'lighting_check',
-# #        'mouth_open_check',
-# #        'shoulder_alignment_check',
-#         'skin_specular_reflection_check',
-# #        'watermark_check'
-#     ]
-# CHECK_IMG_MINSIZE = False
-# MIN_WIDTH = 100
-# MIN_HEIGHT = 120
+LISA_CHECK_TYPES = [
+        'background_check',
+        'blur_check',
+        'eye_close_check',
+        'face_front_check',
+        'face_presence_check',
+        'file_type_check',
+#        'frame_cover_eye_check',
+        'gaze_check',
+#        'hair_cover_eye_check',
+#        'headcover_check',
+#        'image_size_check',
+#        'lighting_check',
+#        'mouth_open_check',
+#        'shoulder_alignment_check',
+        'skin_specular_reflection_check',
+#        'watermark_check'
+    ]
 
 def read_json(file_path):
     with open(file_path, "r") as f:
@@ -49,6 +47,9 @@ def read_json(file_path):
 
 
 def extract_frame(filename):
+    '''
+    Extract 5 frames per second from video. Works on images as well (will just return one frame)
+    '''
     print(f"Extracting frames from {filename}...")
     
     # get video
@@ -69,7 +70,7 @@ def extract_frame(filename):
 
 def draw_box(label, instance, image):
     """
-    Draw box based on api results; follwing mobius results
+    Draw box based on api results; follwing mobius API response
     """
     font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
                               size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
@@ -101,37 +102,50 @@ def draw_box(label, instance, image):
     
     return image
 
-# def process_lisa_results(response, image_path):
-#     row_result = []
-#     results = response.json()['results']
-    
-#     for check in LISA_CHECK_TYPES:
-#         if check in results:
-#             row_result.append(results[check]["status"])
-#         else:
-#             row_result.append(-3)       # check not implemented
-    
-#     image = Image.open(image_path)
-#     row_result.append(image.width)
-#     row_result.append(image.height)
+def process_lisa_results(response, image_path):
+    '''
+    Process API response
+    Returns csv row content
+    '''
+    row_result = []
+    try:
+        results = response.json()['results']
+        
+        for check in LISA_CHECK_TYPES:
+            if check in results:
+                row_result.append(results[check]["status"])
+            else:
+                row_result.append(-3)       # check not implemented
+        
+        image = Image.open(image_path)
+        row_result.append(image.width)
+        row_result.append(image.height)
 
-#     fail = any(v == 0 for v in row_result[1:])
+        fail = any(v == 0 for v in row_result[1:])
 
-#     # Ensure photo is portrait
-#     if image.width > image.height:
-#         fail = True
-    
-#     # TODO: Check min image size
-    
-#     if fail:
-#         row_result.append('0')
-#     else:
-#         row_result.append('1')
-    
-#     return row_result
+        # Ensure photo is portrait
+        if image.width > image.height:
+            fail = True
+        
+        if fail:
+            row_result.append('0')
+            shutil.copy(image_path, os.path.join(OUTPUT_DIR, 'fail'))
+        else:
+            row_result.append('1')
+            shutil.copy(image_path, os.path.join(OUTPUT_DIR, 'success'))
+        
+        return row_result
+    except Exception as e:
+        print(response.json())
+        row_result = ['Err' for i in range(len(LISA_CHECK_TYPES)+3)]
+        return row_result
     
 
 def process_mobius_results(response, image_path):
+    '''
+    Process API response
+    Returns csv row content and image with detections
+    '''
     # print(response.json())        # for debugging
     image = Image.open(image_path)
     try: 
@@ -152,7 +166,56 @@ def process_mobius_results(response, image_path):
         return {}, image
 
 def lisa():
-    pass
+    '''
+    Takes in photos and generates csv file with results. 
+    Puts photos which passed into success/ directory.
+    Puts photos which failed into fail/ directory.
+    '''
+    csv_header = ["Filename"] + [check for check in LISA_CHECK_TYPES] + ["width","height","PASSED"]
+    csv_rows = []
+    
+    # Create output directories
+    success_output_path = os.path.join(OUTPUT_DIR, 'success')
+    fail_output_path = os.path.join(OUTPUT_DIR, 'fail')
+    if not os.path.isdir(success_output_path):
+        print(f"Success output directory did not exist and was created.")
+        os.mkdir(success_output_path)
+        
+    if not os.path.isdir(fail_output_path):
+        print(f"Fail output directory did not exist and was created.")
+        os.mkdir(fail_output_path)
+        
+        
+    for filename in sorted(os.listdir(INPUT_DIR)):
+        print(f"Processing {filename}...")
+        image_path = os.path.join(INPUT_DIR, filename)
+        
+        with open(image_path, 'rb') as image_file:
+            b64str = base64.b64encode(image_file.read()).decode()
+            
+            params = {
+                'image_base64': b64str,
+                'datetime': datetime.datetime.now().isoformat(),
+                'debug_image': False
+            }
+            
+            headers = {
+                'vas-api-key': API_KEY
+            }
+            
+            response = requests.post(url=API_URL, json=params, headers=headers)
+            csv_row = process_lisa_results(response, image_path)
+            csv_row = [filename] + csv_row
+        
+        csv_rows.append(csv_row)
+    
+    csv_file = open(os.path.join(OUTPUT_DIR, 'results.csv'), 'w')
+    writer = csv.writer(csv_file)
+    writer.writerow(csv_header)
+    writer.writerows(csv_rows)
+    csv_file.close()   
+            
+        
 
 def mobius():
     csv_header = set()
@@ -162,7 +225,7 @@ def mobius():
         # create directory in output folder to store images with detections
         print(f"\nGenerating outputs for {filename}...")
         file_output_path = os.path.join(OUTPUT_DIR, filename)
-        if not os.path.exists(file_output_path):
+        if not os.path.isdir(file_output_path):
             os.mkdir(file_output_path)
             print(f"Output directory {file_output_path} did not exist and was created.")
         
